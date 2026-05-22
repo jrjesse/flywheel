@@ -1,0 +1,26 @@
+package com.antigravity.sales.core.model;
+
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
+import lombok.Data;
+
+@Entity
+@Table(name = "system_settings")
+@Data
+public class SystemSettings {
+    @Id
+    private Long id = 1L; // Only one row for global settings
+
+    private String smtpHost;
+    private Integer smtpPort;
+    private String smtpUsername;
+    private String smtpPassword;
+    private Boolean smtpAuth = true;
+    private Boolean smtpTls = true;
+
+    private String templateFilePath;
+
+    private Double revenueGoal = 100000.0;
+    private Integer contactGoal = 50;
+}
