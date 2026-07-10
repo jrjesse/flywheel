@@ -1,5 +1,6 @@
 package com.antigravity.sales.queue.model;
 
+import com.antigravity.sales.security.crypto.AesGcmConverter;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -21,15 +22,18 @@ public class WhatsAppChannelConfig {
     private UUID clientId;
 
     // Meta API Credentials
+    @Convert(converter = AesGcmConverter.class)
     @Column(columnDefinition = "TEXT")
     private String accessToken;
     
     private String phoneNumberId;
     private String wabaId;
     
+    @Convert(converter = AesGcmConverter.class)
     @Column(columnDefinition = "TEXT")
     private String appSecret;
     
+    @Convert(converter = AesGcmConverter.class)
     private String verifyToken;
 
     // Queue & Observability Rules

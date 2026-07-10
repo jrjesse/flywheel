@@ -39,7 +39,6 @@ public class EmailService {
         props.put("mail.transport.protocol", "smtp");
         props.put("mail.smtp.auth", settings.getSmtpAuth() != null ? settings.getSmtpAuth().toString() : "false");
         props.put("mail.smtp.starttls.enable", settings.getSmtpTls() != null ? settings.getSmtpTls().toString() : "false");
-        props.put("mail.debug", "true");
 
         try {
             MimeMessage message = mailSender.createMimeMessage();

@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Entity
 @Table(name = "lead_interactions")
@@ -15,7 +16,9 @@ public class LeadInteraction {
     private Long id;
 
     private Long leadId;
-    
+    private UUID tenantId;
+    private UUID createdByUserId;
+
     private String username;
     
     @Column(columnDefinition = "TEXT")

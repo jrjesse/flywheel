@@ -1,5 +1,6 @@
 package com.antigravity.sales.queue.model;
 
+import com.antigravity.sales.security.crypto.AesGcmConverter;
 import jakarta.persistence.*;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -21,15 +22,18 @@ public class InstagramChannelConfig {
     private UUID clientId;
 
     // Meta API Credentials
+    @Convert(converter = AesGcmConverter.class)
     @Column(columnDefinition = "TEXT")
     private String accessToken;
     
     private String instagramAccountId;
     private String pageId;
     
+    @Convert(converter = AesGcmConverter.class)
     @Column(columnDefinition = "TEXT")
     private String appSecret;
     
+    @Convert(converter = AesGcmConverter.class)
     private String verifyToken;
     
     private boolean active = true;

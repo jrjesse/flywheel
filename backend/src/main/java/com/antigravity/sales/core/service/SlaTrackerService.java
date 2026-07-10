@@ -4,11 +4,13 @@ import com.antigravity.sales.core.model.Lead;
 import com.antigravity.sales.core.repository.LeadRepository;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.context.annotation.Profile;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 @Service
+@Profile("!test")
 public class SlaTrackerService {
 
     private final LeadRepository leadRepository;

@@ -10,5 +10,5 @@ import java.util.UUID;
 @Repository
 public interface GoogleFormsConfigRepository extends JpaRepository<GoogleFormsConfig, UUID> {
     Optional<GoogleFormsConfig> findByClientId(UUID clientId);
-    Optional<GoogleFormsConfig> findByWebhookToken(String webhookToken);
+    Optional<GoogleFormsConfig> findByWebhookTokenHash(String webhookTokenHash);
 }

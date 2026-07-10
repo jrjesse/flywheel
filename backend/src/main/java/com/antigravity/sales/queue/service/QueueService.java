@@ -92,6 +92,7 @@ public class QueueService {
             createLog(interaction, oldStatus, InteractionStatus.TRANSBORDADO, "Capacity full");
             
             SystemNotification notif = new SystemNotification();
+            notif.setTenantId(interaction.getLead().getTenantId());
             notif.setType("QUEUE_OVERFLOW");
             notif.setMessage("Fila lotada: Lead " + interaction.getLead().getName() + " entrou em transbordo por falta de agentes.");
             notif.setLeadId(interaction.getLead().getId());

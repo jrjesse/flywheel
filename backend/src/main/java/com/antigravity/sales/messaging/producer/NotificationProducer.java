@@ -2,9 +2,11 @@ package com.antigravity.sales.messaging.producer;
 
 import com.antigravity.sales.core.model.Lead;
 import org.springframework.kafka.core.KafkaTemplate;
+import org.springframework.context.annotation.Profile;
 import org.springframework.stereotype.Service;
 
 @Service
+@Profile("!test")
 public class NotificationProducer {
 
     private final KafkaTemplate<String, Object> kafkaTemplate;

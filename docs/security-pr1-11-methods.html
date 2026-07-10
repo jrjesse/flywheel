@@ -1,0 +1,877 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>PRs 1–11 — Métodos e Endpoints de Segurança</title>
+  <style>
+    :root {
+      --bg: #0f1419;
+      --surface: #1a2332;
+      --surface2: #243044;
+      --border: #2d3a4f;
+      --text: #e6edf3;
+      --muted: #8b9cb3;
+      --created: #3fb950;
+      --modified: #d29922;
+      --removed: #f85149;
+      --accent: #58a6ff;
+      --pr1: #1f6feb;
+      --pr2: #8957e5;
+      --pr3: #bf4b8a;
+      --pr4: #da3633;
+      --pr5: #2ea043;
+      --pr6: #9e6a03;
+      --pr7: #0550ae;
+      --pr8: #6639ba;
+      --pr9: #bc4c00;
+      --pr10: #0969da;
+      --pr11: #656d76;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      padding: 2rem;
+    }
+    .container { max-width: 1200px; margin: 0 auto; }
+    header {
+      border-bottom: 1px solid var(--border);
+      padding-bottom: 2rem;
+      margin-bottom: 2rem;
+    }
+    h1 { font-size: 1.75rem; font-weight: 600; margin-bottom: 0.5rem; }
+    .subtitle { color: var(--muted); font-size: 0.95rem; }
+    .stats {
+      display: flex;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-top: 1.5rem;
+    }
+    .stat {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 0.75rem 1.25rem;
+      min-width: 120px;
+    }
+    .stat-value { font-size: 1.5rem; font-weight: 700; }
+    .stat-label { font-size: 0.75rem; color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; }
+    nav.toc {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    nav.toc h2 { font-size: 1rem; margin-bottom: 1rem; color: var(--muted); }
+    nav.toc ul { list-style: none; columns: 2; gap: 2rem; }
+    @media (max-width: 640px) { nav.toc ul { columns: 1; } }
+    nav.toc a { color: var(--accent); text-decoration: none; font-size: 0.9rem; }
+    nav.toc a:hover { text-decoration: underline; }
+    section.pr {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      margin-bottom: 1.5rem;
+      overflow: hidden;
+    }
+    .pr-header {
+      padding: 1rem 1.5rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .pr-badge {
+      font-size: 0.7rem;
+      font-weight: 700;
+      padding: 0.25rem 0.6rem;
+      border-radius: 999px;
+      color: #fff;
+      letter-spacing: 0.03em;
+    }
+    .pr-title { font-size: 1.1rem; font-weight: 600; flex: 1; }
+    .pr-desc { font-size: 0.85rem; color: var(--muted); width: 100%; margin-top: 0.25rem; }
+    .class-block { border-bottom: 1px solid var(--border); }
+    .class-block:last-child { border-bottom: none; }
+    .class-name {
+      padding: 0.75rem 1.5rem;
+      background: var(--surface2);
+      font-family: 'SF Mono', 'Fira Code', monospace;
+      font-size: 0.85rem;
+      color: var(--accent);
+    }
+    .class-path { color: var(--muted); font-size: 0.75rem; margin-left: 0.5rem; }
+    table { width: 100%; border-collapse: collapse; font-size: 0.875rem; }
+    th {
+      text-align: left;
+      padding: 0.6rem 1.5rem;
+      color: var(--muted);
+      font-weight: 500;
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      background: rgba(0,0,0,0.15);
+    }
+    td { padding: 0.65rem 1.5rem; border-top: 1px solid var(--border); vertical-align: top; }
+    tr:hover td { background: rgba(88,166,255,0.04); }
+    .badge {
+      display: inline-block;
+      font-size: 0.65rem;
+      font-weight: 700;
+      padding: 0.15rem 0.45rem;
+      border-radius: 4px;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+    }
+    .badge-created { background: rgba(63,185,80,0.2); color: var(--created); }
+    .badge-modified { background: rgba(210,153,34,0.2); color: var(--modified); }
+    .badge-removed { background: rgba(248,81,73,0.2); color: var(--removed); }
+    .method { font-family: 'SF Mono', 'Fira Code', monospace; font-size: 0.8rem; }
+    .http { font-family: monospace; font-size: 0.75rem; color: var(--muted); }
+    .http-get { color: #3fb950; }
+    .http-post { color: #58a6ff; }
+    .http-put { color: #d29922; }
+    .http-patch { color: #a371f7; }
+    .http-delete { color: #f85149; }
+    .note {
+      margin: 1.5rem 0;
+      padding: 1rem 1.25rem;
+      background: rgba(88,166,255,0.08);
+      border: 1px solid rgba(88,166,255,0.25);
+      border-radius: 8px;
+      font-size: 0.875rem;
+    }
+    footer {
+      margin-top: 3rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 0.8rem;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <header>
+    <h1>PRs 1–11 — Inventário de Métodos e Endpoints</h1>
+    <p class="subtitle">Sales Automation API · Implementação de segurança para produção · Gerado em 10/07/2026</p>
+    <div class="stats">
+      <div class="stat"><div class="stat-value" style="color:var(--created)">~85</div><div class="stat-label">Criados</div></div>
+      <div class="stat"><div class="stat-value" style="color:var(--modified)">~35</div><div class="stat-label">Alterados</div></div>
+      <div class="stat"><div class="stat-value" style="color:var(--removed)">5</div><div class="stat-label">Removidos</div></div>
+      <div class="stat"><div class="stat-value">11</div><div class="stat-label">PRs</div></div>
+    </div>
+  </header>
+
+  <nav class="toc">
+    <h2>Índice por PR</h2>
+    <ul>
+      <li><a href="#pr1">PR-1 — Secrets &amp; Profiles</a></li>
+      <li><a href="#pr2">PR-2 — Spring Security + JWT</a></li>
+      <li><a href="#pr3">PR-3 — Multi-tenant</a></li>
+      <li><a href="#pr4">PR-4 — Webhook Auth</a></li>
+      <li><a href="#pr5">PR-5 — AES-GCM</a></li>
+      <li><a href="#pr6">PR-6 — DTOs sem secrets</a></li>
+      <li><a href="#pr7">PR-7 — Hardening</a></li>
+      <li><a href="#pr8">PR-8 — Validação</a></li>
+      <li><a href="#pr9">PR-9 — Autorização interações</a></li>
+      <li><a href="#pr10">PR-10 — Audit log</a></li>
+      <li><a href="#pr11">PR-11 — CI Segurança</a></li>
+    </ul>
+  </nav>
+
+  <div class="note">
+    Legenda: <span class="badge badge-created">CRIADO</span> novo método/classe &nbsp;
+    <span class="badge badge-modified">ALTERADO</span> método existente modificado &nbsp;
+    <span class="badge badge-removed">REMOVIDO</span> método/classe eliminado
+  </div>
+
+  <!-- PR-1 -->
+  <section class="pr" id="pr1">
+    <div class="pr-header">
+      <span class="pr-badge" style="background:var(--pr1)">PR-1</span>
+      <span class="pr-title">Secrets &amp; Application Profiles</span>
+      <span class="pr-desc">Gestão de secrets via env vars, profiles dev/prod, .env.example</span>
+    </div>
+    <div class="class-block">
+      <div class="class-name">Arquivos de configuração <span class="class-path">(sem métodos Java)</span></div>
+      <table>
+        <thead><tr><th>Arquivo</th><th>Status</th><th>Descrição</th></tr></thead>
+        <tbody>
+          <tr><td><code>application.properties</code></td><td><span class="badge badge-modified">ALTERADO</span></td><td>Defaults não-sensíveis com placeholders <code>${ENV_VAR}</code></td></tr>
+          <tr><td><code>application-dev.properties</code></td><td><span class="badge badge-created">CRIADO</span></td><td>Profile local: ddl-auto=update, secrets de dev</td></tr>
+          <tr><td><code>application-prod.properties</code></td><td><span class="badge badge-created">CRIADO</span></td><td>Profile prod: ddl-auto=validate, logs reduzidos</td></tr>
+          <tr><td><code>.env.example</code></td><td><span class="badge badge-created">CRIADO</span></td><td>Documentação de variáveis obrigatórias</td></tr>
+          <tr><td><code>backend/scripts/migrate-security-prd.sql</code></td><td><span class="badge badge-created">CRIADO</span></td><td>Script SQL de migração de dados legacy</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- PR-2 -->
+  <section class="pr" id="pr2">
+    <div class="pr-header">
+      <span class="pr-badge" style="background:var(--pr2)">PR-2</span>
+      <span class="pr-title">Spring Security + JWT</span>
+      <span class="pr-desc">Autenticação stateless, registro/login, filtros JWT</span>
+    </div>
+
+    <div class="class-block">
+      <div class="class-name">AuthController <span class="class-path">api/controller/AuthController.java</span></div>
+      <table>
+        <thead><tr><th>HTTP</th><th>Método</th><th>Status</th><th>Descrição</th></tr></thead>
+        <tbody>
+          <tr><td class="http http-post">POST /api/auth/register</td><td class="method">register(RegisterRequest)</td><td><span class="badge badge-created">CRIADO</span></td><td>Cria tenant + admin + webhook secret</td></tr>
+          <tr><td class="http http-post">POST /api/auth/login</td><td class="method">login(LoginRequest)</td><td><span class="badge badge-created">CRIADO</span></td><td>Autentica e retorna JWT</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="class-block">
+      <div class="class-name">AuthService <span class="class-path">core/service/AuthService.java</span></div>
+      <table>
+        <thead><tr><th>Método</th><th>Status</th><th>Descrição</th></tr></thead>
+        <tbody>
+          <tr><td class="method">register(RegisterRequest): AuthResponse</td><td><span class="badge badge-created">CRIADO</span></td><td>Transação: tenant, user BCrypt, webhook secret hash</td></tr>
+          <tr><td class="method">login(LoginRequest): AuthResponse</td><td><span class="badge badge-created">CRIADO</span></td><td>Valida credenciais e gera JWT</td></tr>
+          <tr><td class="method">generateWebhookSecret(): String</td><td><span class="badge badge-created">CRIADO</span></td><td>Gera secret Base64 URL-safe (32 bytes)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="class-block">
+      <div class="class-name">JwtService <span class="class-path">security/JwtService.java</span></div>
+      <table>
+        <thead><tr><th>Método</th><th>Status</th><th>Descrição</th></tr></thead>
+        <tbody>
+          <tr><td class="method">generateToken(userId, tenantId, email, displayName, role): String</td><td><span class="badge badge-created">CRIADO</span></td><td>Emite JWT HMAC-SHA256</td></tr>
+          <tr><td class="method">parseToken(token): Claims</td><td><span class="badge badge-created">CRIADO</span></td><td>Valida assinatura e expiração</td></tr>
+          <tr><td class="method">applyClaimsToContext(Claims): void</td><td><span class="badge badge-created">CRIADO</span></td><td>Popula TenantContext a partir do token</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="class-block">
+      <div class="class-name">JwtAuthFilter <span class="class-path">security/JwtAuthFilter.java</span></div>
+      <table>
+        <thead><tr><th>Método</th><th>Status</th><th>Descrição</th></tr></thead>
+        <tbody>
+          <tr><td class="method">doFilterInternal(request, response, chain): void</td><td><span class="badge badge-created">CRIADO</span></td><td>Extrai Bearer token, autentica, limpa contexto no finally</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="class-block">
+      <div class="class-name">SecurityConfig <span class="class-path">security/SecurityConfig.java</span></div>
+      <table>
+        <thead><tr><th>Método</th><th>Status</th><th>Descrição</th></tr></thead>
+        <tbody>
+          <tr><td class="method">securityFilterChain(HttpSecurity): SecurityFilterChain</td><td><span class="badge badge-created">CRIADO</span></td><td>CSRF off, stateless, rotas públicas, 401/403 handlers</td></tr>
+          <tr><td class="method">passwordEncoder(): PasswordEncoder</td><td><span class="badge badge-created">CRIADO</span></td><td>BCryptPasswordEncoder</td></tr>
+          <tr><td class="method">corsConfigurationSource(): CorsConfigurationSource</td><td><span class="badge badge-created">CRIADO</span></td><td>CORS centralizado por env var</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="class-block">
+      <div class="class-name">TenantContext <span class="class-path">security/TenantContext.java</span></div>
+      <table>
+        <thead><tr><th>Método</th><th>Status</th><th>Descrição</th></tr></thead>
+        <tbody>
+          <tr><td class="method">set(tenantId, userId, email, displayName, roles)</td><td><span class="badge badge-created">CRIADO</span></td><td>ThreadLocal do request autenticado</td></tr>
+          <tr><td class="method">getTenantId(): Optional&lt;UUID&gt;</td><td><span class="badge badge-created">CRIADO</span></td></tr>
+          <tr><td class="method">requireTenantId(): UUID</td><td><span class="badge badge-created">CRIADO</span></td></tr>
+          <tr><td class="method">getUserId() / requireUserId()</td><td><span class="badge badge-created">CRIADO</span></td></tr>
+          <tr><td class="method">getDisplayName() / getUserEmail()</td><td><span class="badge badge-created">CRIADO</span></td></tr>
+          <tr><td class="method">hasRole(role) / hasAnyRole(roles...)</td><td><span class="badge badge-created">CRIADO</span></td></tr>
+          <tr><td class="method">clear(): void</td><td><span class="badge badge-created">CRIADO</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="class-block">
+      <div class="class-name">AuthenticatedUser <span class="class-path">security/AuthenticatedUser.java</span></div>
+      <table>
+        <thead><tr><th>Método</th><th>Status</th><th>Descrição</th></tr></thead>
+        <tbody>
+          <tr><td class="method">authorities(): Collection&lt;SimpleGrantedAuthority&gt;</td><td><span class="badge badge-created">CRIADO</span></td><td>Record — converte roles para Spring Security</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="class-block">
+      <div class="class-name">SalesAutomationApiApplication <span class="class-path">SalesAutomationApiApplication.java</span></div>
+      <table>
+        <thead><tr><th>Alteração</th><th>Status</th><th>Descrição</th></tr></thead>
+        <tbody>
+          <tr><td class="method">@SpringBootApplication(exclude = UserDetailsServiceAutoConfiguration)</td><td><span class="badge badge-modified">ALTERADO</span></td><td>Desabilita senha gerada automática do Spring</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="class-block">
+      <div class="class-name">TenantController <span class="class-path">api/controller/TenantController.java</span></div>
+      <table>
+        <thead><tr><th>Método</th><th>Status</th><th>Descrição</th></tr></thead>
+        <tbody>
+          <tr><td class="method">createTenant(Tenant)</td><td><span class="badge badge-removed">REMOVIDO</span></td><td>Substituído por POST /api/auth/register</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- PR-3 -->
+  <section class="pr" id="pr3">
+    <div class="pr-header">
+      <span class="pr-badge" style="background:var(--pr3)">PR-3</span>
+      <span class="pr-title">Isolamento Multi-tenant</span>
+      <span class="pr-desc">tenantId em entidades, queries filtradas, validação de clientId</span>
+    </div>
+
+    <div class="class-block">
+      <div class="class-name">TenantAccessValidator <span class="class-path">security/TenantAccessValidator.java</span></div>
+      <table>
+        <thead><tr><th>Método</th><th>Status</th><th>Descrição</th></tr></thead>
+        <tbody>
+          <tr><td class="method">validateClientAccess(UUID clientId): void</td><td><span class="badge badge-created">CRIADO</span></td><td>Lança 403 se clientId ≠ tenant do JWT</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="class-block">
+      <div class="class-name">LeadIngestionService <span class="class-path">core/service/LeadIngestionService.java</span></div>
+      <table>
+        <thead><tr><th>Método</th><th>Status</th><th>Descrição</th></tr></thead>
+        <tbody>
+          <tr><td class="method">ingest(LeadIngestionRequest, UUID tenantId): Lead</td><td><span class="badge badge-created">CRIADO</span></td><td>Ingestão com tenant explícito (webhooks)</td></tr>
+          <tr><td class="method">requireLeadForTenant(Long id): Lead</td><td><span class="badge badge-created">CRIADO</span></td><td>Busca lead escopado ao tenant do JWT</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="class-block">
+      <div class="class-name">LeadRepository <span class="class-path">core/repository/LeadRepository.java</span></div>
+      <table>
+        <thead><tr><th>Método</th><th>Status</th><th>Descrição</th></tr></thead>
+        <tbody>
+          <tr><td class="method">findByTenantId(UUID): List&lt;Lead&gt;</td><td><span class="badge badge-created">CRIADO</span></td></tr>
+          <tr><td class="method">findByIdAndTenantId(Long, UUID): Optional&lt;Lead&gt;</td><td><span class="badge badge-created">CRIADO</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="class-block">
+      <div class="class-name">LeadSpecification <span class="class-path">core/repository/LeadSpecification.java</span></div>
+      <table>
+        <thead><tr><th>Método</th><th>Status</th><th>Descrição</th></tr></thead>
+        <tbody>
+          <tr><td class="method">filterBy(UUID tenantId, q, companyName, ...): Specification</td><td><span class="badge badge-modified">ALTERADO</span></td><td>Adicionado parâmetro tenantId obrigatório no filtro</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="class-block">
+      <div class="class-name">SystemNotificationRepository <span class="class-path">core/repository/SystemNotificationRepository.java</span></div>
+      <table>
+        <thead><tr><th>Método</th><th>Status</th><th>Descrição</th></tr></thead>
+        <tbody>
+          <tr><td class="method">findByTenantIdAndIsReadFalseOrderByCreatedAtDesc(UUID)</td><td><span class="badge badge-created">CRIADO</span></td></tr>
+          <tr><td class="method">findByIdAndTenantId(Long, UUID)</td><td><span class="badge badge-created">CRIADO</span></td></tr>
+          <tr><td class="method">findByIsReadFalseOrderByCreatedAtDesc()</td><td><span class="badge badge-removed">REMOVIDO</span></td><td>Substituído por query com tenant</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="class-block">
+      <div class="class-name">Entidades (campos adicionados)</div>
+      <table>
+        <thead><tr><th>Classe</th><th>Campo</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>Lead</td><td class="method">tenantId: UUID</td><td><span class="badge badge-created">CRIADO</span></td></tr>
+          <tr><td>LeadInteraction</td><td class="method">tenantId, createdByUserId: UUID</td><td><span class="badge badge-created">CRIADO</span></td></tr>
+          <tr><td>SystemNotification</td><td class="method">tenantId: UUID</td><td><span class="badge badge-created">CRIADO</span></td></tr>
+          <tr><td>User</td><td class="method">tenantId, role, passwordHash...</td><td><span class="badge badge-created">CRIADO</span></td></tr>
+          <tr><td>TenantWebhookSecret</td><td class="method">tenantId, secretHash</td><td><span class="badge badge-created">CRIADO</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- PR-4 -->
+  <section class="pr" id="pr4">
+    <div class="pr-header">
+      <span class="pr-badge" style="background:var(--pr4)">PR-4</span>
+      <span class="pr-title">Autenticação de Webhooks</span>
+      <span class="pr-desc">Novos controllers de webhook com validação de secret/HMAC/token</span>
+    </div>
+
+    <div class="class-block">
+      <div class="class-name">WebhookAuthService <span class="class-path">security/WebhookAuthService.java</span></div>
+      <table>
+        <thead><tr><th>Método</th><th>Status</th><th>Descrição</th></tr></thead>
+        <tbody>
+          <tr><td class="method">resolveTenantFromLeadWebhook(HttpServletRequest): Optional&lt;UUID&gt;</td><td><span class="badge badge-created">CRIADO</span></td><td>Valida header X-Webhook-Secret (BCrypt)</td></tr>
+          <tr><td class="method">validateWhatsAppSignature(request, payload, tenantId): boolean</td><td><span class="badge badge-created">CRIADO</span></td><td>HMAC SHA-256 Meta (X-Hub-Signature-256)</td></tr>
+          <tr><td class="method">resolveTenantFromGoogleFormsToken(token): Optional&lt;UUID&gt;</td><td><span class="badge badge-created">CRIADO</span></td><td>Lookup por hash SHA-256 do token</td></tr>
+          <tr><td class="method">constantTimeEquals(a, b): boolean</td><td><span class="badge badge-created">CRIADO</span></td><td>Comparação timing-safe</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="class-block">
+      <div class="class-name">LeadWebhookController <span class="class-path">api/controller/LeadWebhookController.java</span></div>
+      <table>
+        <thead><tr><th>HTTP</th><th>Método</th><th>Status</th><th>Descrição</th></tr></thead>
+        <tbody>
+          <tr><td class="http http-post">POST /api/webhooks/leads</td><td class="method">receiveLead(request, LeadIngestionRequest)</td><td><span class="badge badge-created">CRIADO</span></td><td>Substitui POST /api/leads/webhook</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="class-block">
+      <div class="class-name">WhatsAppWebhookController <span class="class-path">api/controller/WhatsAppWebhookController.java</span></div>
+      <table>
+        <thead><tr><th>HTTP</th><th>Método</th><th>Status</th><th>Descrição</th></tr></thead>
+        <tbody>
+          <tr><td class="http http-post">POST /api/webhooks/whatsapp/{tenantId}</td><td class="method">receiveMessage(tenantId, request, payload, leadId, text)</td><td><span class="badge badge-created">CRIADO</span></td><td>Substitui POST /api/queue/webhook</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="class-block">
+      <div class="class-name">GoogleFormsWebhookController <span class="class-path">api/controller/GoogleFormsWebhookController.java</span></div>
+      <table>
+        <thead><tr><th>HTTP</th><th>Método</th><th>Status</th><th>Descrição</th></tr></thead>
+        <tbody>
+          <tr><td class="http http-post">POST /api/webhooks/google-forms/{token}</td><td class="method">receiveFormSubmission(token, LeadIngestionRequest)</td><td><span class="badge badge-created">CRIADO</span></td><td>Ingestão via token na URL</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="class-block">
+      <div class="class-name">Métodos removidos (webhooks legados)</div>
+      <table>
+        <thead><tr><th>Classe</th><th>Método</th><th>Status</th><th>Substituído por</th></tr></thead>
+        <tbody>
+          <tr><td>LeadController</td><td class="method">receiveLead(LeadRequest)</td><td><span class="badge badge-removed">REMOVIDO</span></td><td>LeadWebhookController.receiveLead</td></tr>
+          <tr><td>QueueController</td><td class="method">receiveMessage(IncomingMessageRequest)</td><td><span class="badge badge-removed">REMOVIDO</span></td><td>WhatsAppWebhookController.receiveMessage</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- PR-5 -->
+  <section class="pr" id="pr5">
+    <div class="pr-header">
+      <span class="pr-badge" style="background:var(--pr5)">PR-5</span>
+      <span class="pr-title">Criptografia AES-GCM</span>
+      <span class="pr-desc">Substitui AES/ECB; campos sensíveis criptografados em repouso</span>
+    </div>
+
+    <div class="class-block">
+      <div class="class-name">AesGcmCryptoService <span class="class-path">security/crypto/AesGcmCryptoService.java</span></div>
+      <table>
+        <thead><tr><th>Método</th><th>Status</th><th>Descrição</th></tr></thead>
+        <tbody>
+          <tr><td class="method">encrypt(plaintext): String</td><td><span class="badge badge-created">CRIADO</span></td><td>AES-256-GCM com IV aleatório, output Base64</td></tr>
+          <tr><td class="method">decrypt(encrypted): String</td><td><span class="badge badge-created">CRIADO</span></td><td>Descriptografa payload iv+ciphertext</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="class-block">
+      <div class="class-name">AesGcmConverter <span class="class-path">security/crypto/AesGcmConverter.java</span></div>
+      <table>
+        <thead><tr><th>Método</th><th>Status</th><th>Descrição</th></tr></thead>
+        <tbody>
+          <tr><td class="method">convertToDatabaseColumn(attribute): String</td><td><span class="badge badge-created">CRIADO</span></td><td>JPA AttributeConverter encrypt</td></tr>
+          <tr><td class="method">convertToEntityAttribute(dbData): String</td><td><span class="badge badge-created">CRIADO</span></td><td>JPA AttributeConverter decrypt</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="class-block">
+      <div class="class-name">WebhookTokenHasher <span class="class-path">security/crypto/WebhookTokenHasher.java</span></div>
+      <table>
+        <thead><tr><th>Método</th><th>Status</th><th>Descrição</th></tr></thead>
+        <tbody>
+          <tr><td class="method">hash(token): String</td><td><span class="badge badge-created">CRIADO</span></td><td>SHA-256 hex para lookup Google Forms</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="class-block">
+      <div class="class-name">CryptoConverter <span class="class-path">billing/util/CryptoConverter.java</span></div>
+      <table>
+        <thead><tr><th>Método</th><th>Status</th><th>Descrição</th></tr></thead>
+        <tbody>
+          <tr><td class="method">convertToDatabaseColumn / convertToEntityAttribute</td><td><span class="badge badge-removed">REMOVIDO</span></td><td>AES/ECB inseguro — substituído por AesGcmConverter</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="class-block">
+      <div class="class-name">Entidades com @Convert(AesGcmConverter)</div>
+      <table>
+        <thead><tr><th>Classe</th><th>Campos criptografados</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>WhatsAppChannelConfig</td><td>accessToken, appSecret, verifyToken</td><td><span class="badge badge-modified">ALTERADO</span></td></tr>
+          <tr><td>InstagramChannelConfig</td><td>accessToken, appSecret, verifyToken</td><td><span class="badge badge-modified">ALTERADO</span></td></tr>
+          <tr><td>SystemSettings</td><td>smtpPassword</td><td><span class="badge badge-modified">ALTERADO</span></td></tr>
+          <tr><td>InvoiceEntity</td><td>customerCpfCnpj, customerAddress</td><td><span class="badge badge-modified">ALTERADO</span></td></tr>
+          <tr><td>GoogleFormsConfig</td><td>webhookTokenHash (SHA-256, não AES)</td><td><span class="badge badge-modified">ALTERADO</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- PR-6 -->
+  <section class="pr" id="pr6">
+    <div class="pr-header">
+      <span class="pr-badge" style="background:var(--pr6)">PR-6</span>
+      <span class="pr-title">DTOs de Response sem Secrets</span>
+      <span class="pr-desc">API nunca retorna tokens/senhas em texto plano</span>
+    </div>
+
+    <div class="class-block">
+      <div class="class-name">DTOs criados</div>
+      <table>
+        <thead><tr><th>Classe</th><th>Status</th><th>Campos mascarados</th></tr></thead>
+        <tbody>
+          <tr><td>WhatsAppConfigResponse</td><td><span class="badge badge-created">CRIADO</span></td><td>hasAccessToken, hasAppSecret, hasVerifyToken</td></tr>
+          <tr><td>InstagramConfigResponse</td><td><span class="badge badge-created">CRIADO</span></td><td>hasAccessToken, hasAppSecret, hasVerifyToken</td></tr>
+          <tr><td>GoogleFormsConfigResponse</td><td><span class="badge badge-created">CRIADO</span></td><td>hasWebhookToken</td></tr>
+          <tr><td>SystemSettingsResponse</td><td><span class="badge badge-created">CRIADO</span></td><td>hasSmtpPassword</td></tr>
+          <tr><td>WhatsAppConfigRequest</td><td><span class="badge badge-created">CRIADO</span></td><td>Input para PUT (secrets opcionais)</td></tr>
+          <tr><td>InstagramConfigRequest</td><td><span class="badge badge-created">CRIADO</span></td></tr>
+          <tr><td>GoogleFormsConfigRequest</td><td><span class="badge badge-created">CRIADO</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="class-block">
+      <div class="class-name">WhatsAppConfigService <span class="class-path">queue/service/WhatsAppConfigService.java</span></div>
+      <table>
+        <thead><tr><th>Método</th><th>Status</th><th>Descrição</th></tr></thead>
+        <tbody>
+          <tr><td class="method">toResponse(WhatsAppChannelConfig): WhatsAppConfigResponse</td><td><span class="badge badge-created">CRIADO</span></td><td>Mapeia entidade → DTO sem secrets</td></tr>
+          <tr><td class="method">saveConfig(clientId, WhatsAppConfigRequest)</td><td><span class="badge badge-modified">ALTERADO</span></td><td>Aceita request DTO; só atualiza token se não blank</td></tr>
+          <tr><td class="method">mergeForTest(clientId, request)</td><td><span class="badge badge-created">CRIADO</span></td><td>Merge para teste de conexão</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="class-block">
+      <div class="class-name">InstagramConfigService</div>
+      <table>
+        <thead><tr><th>Método</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td class="method">toResponse(InstagramChannelConfig)</td><td><span class="badge badge-created">CRIADO</span></td></tr>
+          <tr><td class="method">saveConfig(clientId, InstagramConfigRequest)</td><td><span class="badge badge-modified">ALTERADO</span></td></tr>
+          <tr><td class="method">mergeForTest(clientId, request)</td><td><span class="badge badge-created">CRIADO</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="class-block">
+      <div class="class-name">SystemSettingsController</div>
+      <table>
+        <thead><tr><th>Método</th><th>Status</th><th>Descrição</th></tr></thead>
+        <tbody>
+          <tr><td class="method">toResponse(SystemSettings): SystemSettingsResponse</td><td><span class="badge badge-created">CRIADO</span></td><td>Retorna hasSmtpPassword em vez do valor</td></tr>
+          <tr><td class="method">getSettings() / updateSettings()</td><td><span class="badge badge-modified">ALTERADO</span></td><td>Retorno alterado para SystemSettingsResponse</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- PR-7 -->
+  <section class="pr" id="pr7">
+    <div class="pr-header">
+      <span class="pr-badge" style="background:var(--pr7)">PR-7</span>
+      <span class="pr-title">Hardening — CORS, Headers, Rate Limit</span>
+      <span class="pr-desc">Proteção infraestrutural e anti-abuso</span>
+    </div>
+
+    <div class="class-block">
+      <div class="class-name">RateLimitFilter <span class="class-path">security/RateLimitFilter.java</span></div>
+      <table>
+        <thead><tr><th>Método</th><th>Status</th><th>Descrição</th></tr></thead>
+        <tbody>
+          <tr><td class="method">doFilterInternal(request, response, chain)</td><td><span class="badge badge-created">CRIADO</span></td><td>Bucket4j — 429 quando excede limite</td></tr>
+          <tr><td class="method">resolveKey(request, isWebhook): String</td><td><span class="badge badge-created">CRIADO</span></td><td>Chave por IP ou JWT prefix</td></tr>
+          <tr><td class="method">newBucket(limitPerMinute): Bucket</td><td><span class="badge badge-created">CRIADO</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="class-block">
+      <div class="class-name">SecurityConfig (headers adicionais)</div>
+      <table>
+        <thead><tr><th>Configuração</th><th>Status</th><th>Descrição</th></tr></thead>
+        <tbody>
+          <tr><td>Content-Security-Policy</td><td><span class="badge badge-created">CRIADO</span></td><td>default-src 'self'</td></tr>
+          <tr><td>X-Frame-Options DENY</td><td><span class="badge badge-created">CRIADO</span></td></tr>
+          <tr><td>HSTS max-age=31536000</td><td><span class="badge badge-created">CRIADO</span></td></tr>
+          <tr><td>Referrer-Policy no-referrer</td><td><span class="badge badge-created">CRIADO</span></td></tr>
+          <tr><td>authenticationEntryPoint → 401 JSON</td><td><span class="badge badge-created">CRIADO</span></td></tr>
+          <tr><td>accessDeniedHandler → 403 JSON</td><td><span class="badge badge-created">CRIADO</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="class-block">
+      <div class="class-name">Controllers — remoção de @CrossOrigin("*")</div>
+      <table>
+        <thead><tr><th>Classes afetadas</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>LeadController, SystemSettingsController, SystemNotificationController, WhatsAppConfigController, InstagramConfigController, GoogleFormsConfigController</td><td><span class="badge badge-modified">ALTERADO</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="class-block">
+      <div class="class-name">Jobs/Kafka — @Profile("!test")</div>
+      <table>
+        <thead><tr><th>Classe</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>KafkaConfig, NotificationProducer, NotificationConsumer</td><td><span class="badge badge-modified">ALTERADO</span></td></tr>
+          <tr><td>SlaAndSelfHealingJob, AgentHeartbeatJob, SlaTrackerService</td><td><span class="badge badge-modified">ALTERADO</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- PR-8 -->
+  <section class="pr" id="pr8">
+    <div class="pr-header">
+      <span class="pr-badge" style="background:var(--pr8)">PR-8</span>
+      <span class="pr-title">Validação de Input e Upload</span>
+      <span class="pr-desc">Bean Validation, PDF magic bytes, limite de tamanho</span>
+    </div>
+
+    <div class="class-block">
+      <div class="class-name">GlobalExceptionHandler <span class="class-path">api/GlobalExceptionHandler.java</span></div>
+      <table>
+        <thead><tr><th>Método</th><th>Status</th><th>Descrição</th></tr></thead>
+        <tbody>
+          <tr><td class="method">handleValidation(MethodArgumentNotValidException)</td><td><span class="badge badge-created">CRIADO</span></td><td>400 com mapa de erros por campo</td></tr>
+          <tr><td class="method">handleIllegalArgument(IllegalArgumentException)</td><td><span class="badge badge-created">CRIADO</span></td></tr>
+          <tr><td class="method">handleSecurity(SecurityException)</td><td><span class="badge badge-created">CRIADO</span></td><td>401</td></tr>
+          <tr><td class="method">handleAccessDenied(RuntimeException)</td><td><span class="badge badge-created">CRIADO</span></td><td>403</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="class-block">
+      <div class="class-name">SystemSettingsController</div>
+      <table>
+        <thead><tr><th>Método</th><th>Status</th><th>Descrição</th></tr></thead>
+        <tbody>
+          <tr><td class="method">uploadTemplate(MultipartFile)</td><td><span class="badge badge-modified">ALTERADO</span></td><td>Valida MIME, magic bytes %PDF, max 5MB</td></tr>
+          <tr><td class="method">isPdf(MultipartFile): boolean</td><td><span class="badge badge-created">CRIADO</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="class-block">
+      <div class="class-name">DTOs com validação</div>
+      <table>
+        <thead><tr><th>Classe</th><th>Anotações</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>LeadIngestionRequest</td><td>@NotBlank, @Email, @Pattern, @Size</td><td><span class="badge badge-created">CRIADO</span></td></tr>
+          <tr><td>InteractionRequest</td><td>@NotBlank @Size(max=5000), username removido</td><td><span class="badge badge-modified">ALTERADO</span></td></tr>
+          <tr><td>LoginRequest / RegisterRequest</td><td>@NotBlank, @Email, @Size(min=8)</td><td><span class="badge badge-created">CRIADO</span></td></tr>
+          <tr><td>LeadRequest</td><td>@JsonIgnoreProperties(ignoreUnknown=true)</td><td><span class="badge badge-modified">ALTERADO</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- PR-9 -->
+  <section class="pr" id="pr9">
+    <div class="pr-header">
+      <span class="pr-badge" style="background:var(--pr9)">PR-9</span>
+      <span class="pr-title">Autorização Real em Interações</span>
+      <span class="pr-desc">Edição/exclusão baseada em createdByUserId do JWT</span>
+    </div>
+
+    <div class="class-block">
+      <div class="class-name">LeadController — métodos alterados</div>
+      <table>
+        <thead><tr><th>HTTP</th><th>Método</th><th>Status</th><th>Alteração</th></tr></thead>
+        <tbody>
+          <tr><td class="http http-post">POST /{id}/interactions</td><td class="method">addInteraction(...)</td><td><span class="badge badge-modified">ALTERADO</span></td><td>Define createdByUserId e username do JWT (ignora input)</td></tr>
+          <tr><td class="http http-put">PUT /{id}/interactions/{id}</td><td class="method">updateInteraction(...)</td><td><span class="badge badge-modified">ALTERADO</span></td><td>Verifica createdByUserId == JWT userId</td></tr>
+          <tr><td class="http http-delete">DELETE /{id}/interactions/{id}</td><td class="method">deleteInteraction(...)</td><td><span class="badge badge-modified">ALTERADO</span></td><td>Verifica createdByUserId == JWT userId</td></tr>
+          <tr><td>Todos</td><td class="method">@PreAuthorize(...)</td><td><span class="badge badge-created">CRIADO</span></td><td>RBAC em cada endpoint</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="class-block">
+      <div class="class-name">QueueController</div>
+      <table>
+        <thead><tr><th>HTTP</th><th>Método</th><th>Status</th><th>Alteração</th></tr></thead>
+        <tbody>
+          <tr><td class="http http-post">POST /agent/{id}/heartbeat</td><td class="method">heartbeat(agentId)</td><td><span class="badge badge-modified">ALTERADO</span></td><td>agentId deve == userId do JWT</td></tr>
+          <tr><td class="http http-post">POST /agent/{id}/offline</td><td class="method">goOffline(agentId)</td><td><span class="badge badge-modified">ALTERADO</span></td><td>Idem + audit log</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- PR-10 -->
+  <section class="pr" id="pr10">
+    <div class="pr-header">
+      <span class="pr-badge" style="background:var(--pr10)">PR-10</span>
+      <span class="pr-title">Audit Log &amp; Observabilidade</span>
+      <span class="pr-desc">Rastreabilidade de ações sem PII nos logs</span>
+    </div>
+
+    <div class="class-block">
+      <div class="class-name">AuditService <span class="class-path">core/service/AuditService.java</span></div>
+      <table>
+        <thead><tr><th>Método</th><th>Status</th><th>Descrição</th></tr></thead>
+        <tbody>
+          <tr><td class="method">log(action, resourceType, resourceId): void</td><td><span class="badge badge-created">CRIADO</span></td><td>Persiste AuditLog + log estruturado SLF4J</td></tr>
+          <tr><td class="method">logAuthFailure(action, reason): void</td><td><span class="badge badge-created">CRIADO</span></td><td>Warn para falhas de webhook/auth</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="class-block">
+      <div class="class-name">AuditLogController <span class="class-path">api/controller/AuditLogController.java</span></div>
+      <table>
+        <thead><tr><th>HTTP</th><th>Método</th><th>Status</th><th>Descrição</th></tr></thead>
+        <tbody>
+          <tr><td class="http http-get">GET /api/audit-logs</td><td class="method">getAuditLogs()</td><td><span class="badge badge-created">CRIADO</span></td><td>ADMIN only, filtrado por tenant</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="class-block">
+      <div class="class-name">EmailService</div>
+      <table>
+        <thead><tr><th>Alteração</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td>Removido <code>mail.debug=true</code></td><td><span class="badge badge-modified">ALTERADO</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="class-block">
+      <div class="class-name">Controllers com auditService.log() integrado</div>
+      <table>
+        <thead><tr><th>Controller</th><th>Ações auditadas</th></tr></thead>
+        <tbody>
+          <tr><td>LeadController</td><td>READ, CREATE, UPDATE, DELETE (leads, interações, propostas)</td></tr>
+          <tr><td>LeadWebhookController</td><td>CREATE LEAD, auth_failure</td></tr>
+          <tr><td>WhatsAppWebhookController</td><td>WEBHOOK WHATSAPP_MESSAGE</td></tr>
+          <tr><td>Config controllers</td><td>UPDATE *_CONFIG</td></tr>
+          <tr><td>QueueController</td><td>UPDATE AGENT_STATUS, INTERACTION_QUEUE</td></tr>
+          <tr><td>SystemSettingsController</td><td>UPDATE SYSTEM_SETTINGS, PROPOSAL_TEMPLATE</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- PR-11 -->
+  <section class="pr" id="pr11">
+    <div class="pr-header">
+      <span class="pr-badge" style="background:var(--pr11)">PR-11</span>
+      <span class="pr-title">CI de Segurança &amp; Testes</span>
+      <span class="pr-desc">Pipeline GitHub Actions + testes automatizados</span>
+    </div>
+
+    <div class="class-block">
+      <div class="class-name">SecurityIntegrationTest <span class="class-path">test/.../SecurityIntegrationTest.java</span></div>
+      <table>
+        <thead><tr><th>Método de teste</th><th>Status</th><th>Verifica</th></tr></thead>
+        <tbody>
+          <tr><td class="method">unauthenticatedAccessToLeadsIsDenied()</td><td><span class="badge badge-created">CRIADO</span></td><td>GET /api/leads → 401</td></tr>
+          <tr><td class="method">registerLoginAndAccessLeads()</td><td><span class="badge badge-created">CRIADO</span></td><td>Fluxo register → JWT → GET leads</td></tr>
+          <tr><td class="method">leadWebhookWithoutSecretIsRejected()</td><td><span class="badge badge-created">CRIADO</span></td><td>Webhook sem secret → 401</td></tr>
+          <tr><td class="method">settingsResponseDoesNotExposeSmtpPassword()</td><td><span class="badge badge-created">CRIADO</span></td><td>Response sem smtpPassword</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="class-block">
+      <div class="class-name">AesGcmCryptoServiceTest</div>
+      <table>
+        <thead><tr><th>Método de teste</th><th>Status</th><th>Verifica</th></tr></thead>
+        <tbody>
+          <tr><td class="method">encryptDecryptRoundTrip()</td><td><span class="badge badge-created">CRIADO</span></td><td>Criptografia reversível</td></tr>
+          <tr><td class="method">samePlaintextProducesDifferentCiphertext()</td><td><span class="badge badge-created">CRIADO</span></td><td>IV aleatório (sem ECB leak)</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="class-block">
+      <div class="class-name">LeadControllerTest</div>
+      <table>
+        <thead><tr><th>Método de teste</th><th>Status</th><th>Verifica</th></tr></thead>
+        <tbody>
+          <tr><td class="method">testSearchLeads()</td><td><span class="badge badge-modified">ALTERADO</span></td><td>Com TenantContext mockado</td></tr>
+          <tr><td class="method">testGetLeadsForTenant()</td><td><span class="badge badge-created">CRIADO</span></td><td>findByTenantId</td></tr>
+          <tr><td class="method">testWebhookIngestionSuccess()</td><td><span class="badge badge-removed">REMOVIDO</span></td><td>Movido para LeadWebhookController</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="class-block">
+      <div class="class-name">.github/workflows/security.yml</div>
+      <table>
+        <thead><tr><th>Step</th><th>Status</th><th>Descrição</th></tr></thead>
+        <tbody>
+          <tr><td><code>./mvnw test -Dspring.profiles.active=test</code></td><td><span class="badge badge-created">CRIADO</span></td><td>Unit + integration tests</td></tr>
+          <tr><td><code>./mvnw package -DskipTests</code></td><td><span class="badge badge-created">CRIADO</span></td><td>Build verification</td></tr>
+          <tr><td>OWASP dependency-check</td><td><span class="badge badge-created">CRIADO</span></td><td>Scan CVE (continue-on-error)</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Resumo LeadController alterado -->
+  <section class="pr">
+    <div class="pr-header">
+      <span class="pr-badge" style="background:#656d76">RESUMO</span>
+      <span class="pr-title">LeadController — todos os endpoints (alterados)</span>
+      <span class="pr-desc">Todos agora exigem JWT + tenant scoping + @PreAuthorize</span>
+    </div>
+    <div class="class-block">
+      <table>
+        <thead><tr><th>HTTP</th><th>Método</th><th>Role mínima</th><th>Status</th></tr></thead>
+        <tbody>
+          <tr><td class="http http-get">GET /api/leads</td><td class="method">getLeads()</td><td>VIEWER+</td><td><span class="badge badge-modified">ALTERADO</span></td></tr>
+          <tr><td class="http http-get">GET /api/leads/search</td><td class="method">searchLeads(...)</td><td>VIEWER+</td><td><span class="badge badge-modified">ALTERADO</span></td></tr>
+          <tr><td class="http http-patch">PATCH /api/leads/{id}/status</td><td class="method">updateStatus(...)</td><td>AGENT+</td><td><span class="badge badge-modified">ALTERADO</span></td></tr>
+          <tr><td class="http http-post">POST /api/leads/{id}/interactions</td><td class="method">addInteraction(...)</td><td>AGENT+</td><td><span class="badge badge-modified">ALTERADO</span></td></tr>
+          <tr><td class="http http-get">GET /api/leads/{id}/interactions</td><td class="method">getInteractions(...)</td><td>VIEWER+</td><td><span class="badge badge-modified">ALTERADO</span></td></tr>
+          <tr><td class="http http-get">GET /api/leads/{id}/social</td><td class="method">getSocialMedia(...)</td><td>VIEWER+</td><td><span class="badge badge-modified">ALTERADO</span></td></tr>
+          <tr><td class="http http-post">POST /api/leads/{id}/social</td><td class="method">addSocialMedia(...)</td><td>AGENT+</td><td><span class="badge badge-modified">ALTERADO</span></td></tr>
+          <tr><td class="http http-delete">DELETE /api/leads/social/{id}</td><td class="method">deleteSocialMedia(...)</td><td>AGENT+</td><td><span class="badge badge-modified">ALTERADO</span></td></tr>
+          <tr><td class="http http-put">PUT /api/leads/{id}</td><td class="method">updateLead(...)</td><td>AGENT+</td><td><span class="badge badge-modified">ALTERADO</span></td></tr>
+          <tr><td class="http http-put">PUT .../interactions/{id}</td><td class="method">updateInteraction(...)</td><td>AGENT+</td><td><span class="badge badge-modified">ALTERADO</span></td></tr>
+          <tr><td class="http http-delete">DELETE .../interactions/{id}</td><td class="method">deleteInteraction(...)</td><td>AGENT+</td><td><span class="badge badge-modified">ALTERADO</span></td></tr>
+          <tr><td class="http http-post">POST /api/leads/{id}/proposal</td><td class="method">generateAndSendProposal(...)</td><td>MANAGER+</td><td><span class="badge badge-modified">ALTERADO</span></td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <footer>
+    Sales Automation API · Antigravity Kit · Documento gerado automaticamente · PRs 1–11 Segurança PRD
+  </footer>
+
+</div>
+</body>
+</html>

@@ -1,6 +1,6 @@
 package com.antigravity.sales.billing.model;
 
-import com.antigravity.sales.billing.util.CryptoConverter;
+import com.antigravity.sales.security.crypto.AesGcmConverter;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -27,10 +27,10 @@ public class InvoiceEntity {
     private String status; // DRAFT, OPEN, PAID, UNCOLLECTIBLE, VOID
 
     // Campos criptografados para LGPD
-    @Convert(converter = CryptoConverter.class)
+    @Convert(converter = AesGcmConverter.class)
     private String customerCpfCnpj;
 
-    @Convert(converter = CryptoConverter.class)
+    @Convert(converter = AesGcmConverter.class)
     private String customerAddress;
 
     // Impostos calculados

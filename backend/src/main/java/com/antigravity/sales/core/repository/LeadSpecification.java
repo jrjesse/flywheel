@@ -11,15 +11,20 @@ import org.springframework.util.StringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 public class LeadSpecification {
 
-    public static Specification<Lead> filterBy(String q, String companyName, JobFunction jobFunction, CompanySize size, java.math.BigDecimal minMrr) {
+    public static Specification<Lead> filterBy(UUID tenantId, UUID assignedToUserId, String q, String companyName, JobFunction jobFunction, CompanySize size, java.math.BigDecimal minMrr) {
         return (root, query, criteriaBuilder) -> {
             List<Predicate> predicates = new ArrayList<>();
 
-            // Avoid duplicate rows when joining collections
             query.distinct(true);
+            predicates.add(criteriaBuilder.equal(root.get("tenantId"), tenantId));
+
+            if (assignedToUserId != null) {
+                predicates.add(criteriaBuilder.equal(root.get("assignedToUserId"), assignedToUserId));
+            }
 
             if (StringUtils.hasText(q)) {
                 String term = "%" + q.toLowerCase() + "%";

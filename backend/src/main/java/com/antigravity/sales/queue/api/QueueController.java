@@ -1,10 +1,12 @@
 package com.antigravity.sales.queue.api;
 
-import com.antigravity.sales.core.model.Lead;
 import com.antigravity.sales.core.repository.LeadRepository;
+import com.antigravity.sales.core.service.AuditService;
 import com.antigravity.sales.queue.service.AgentStatusService;
 import com.antigravity.sales.queue.service.QueueService;
+import com.antigravity.sales.security.TenantContext;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.UUID;
@@ -16,53 +18,44 @@ public class QueueController {
     private final QueueService queueService;
     private final AgentStatusService agentStatusService;
     private final LeadRepository leadRepository;
+    private final AuditService auditService;
 
-    public QueueController(QueueService queueService, 
+    public QueueController(QueueService queueService,
                            AgentStatusService agentStatusService,
-                           LeadRepository leadRepository) {
+                           LeadRepository leadRepository,
+                           AuditService auditService) {
         this.queueService = queueService;
         this.agentStatusService = agentStatusService;
         this.leadRepository = leadRepository;
+        this.auditService = auditService;
     }
 
-    // 1. Webhook for incoming WhatsApp Messages (Z-API, Evolution API, Twilio, etc)
-    @PostMapping("/webhook")
-    public ResponseEntity<Void> receiveMessage(@RequestBody IncomingMessageRequest request) {
-        Lead lead = leadRepository.findById(request.getLeadId())
-            .orElseThrow(() -> new IllegalArgumentException("Lead not found"));
-            
-        queueService.processIncomingMessage(lead, request.getText());
-        return ResponseEntity.ok().build();
-    }
-
-    // 2. Agent Heartbeat Endpoint
     @PostMapping("/agent/{agentId}/heartbeat")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER','AGENT')")
     public ResponseEntity<Void> heartbeat(@PathVariable UUID agentId) {
+        if (!TenantContext.requireUserId().equals(agentId)) {
+            return ResponseEntity.status(403).build();
+        }
         agentStatusService.registerHeartbeat(agentId);
         return ResponseEntity.ok().build();
     }
 
-    // 3. Agent going offline manually
     @PostMapping("/agent/{agentId}/offline")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER','AGENT')")
     public ResponseEntity<Void> goOffline(@PathVariable UUID agentId) {
+        if (!TenantContext.requireUserId().equals(agentId)) {
+            return ResponseEntity.status(403).build();
+        }
         agentStatusService.goOffline(agentId);
+        auditService.log("UPDATE", "AGENT_STATUS", agentId.toString());
         return ResponseEntity.ok().build();
     }
-    
-    // 4. Agent finishes interaction
+
     @PostMapping("/interaction/{interactionId}/finish")
+    @PreAuthorize("hasAnyRole('ADMIN','MANAGER','AGENT')")
     public ResponseEntity<Void> finishInteraction(@PathVariable UUID interactionId) {
         queueService.finishInteraction(interactionId);
+        auditService.log("UPDATE", "INTERACTION_QUEUE", interactionId.toString());
         return ResponseEntity.ok().build();
     }
-}
-
-class IncomingMessageRequest {
-    private Long leadId;
-    private String text;
-
-    public Long getLeadId() { return leadId; }
-    public void setLeadId(Long leadId) { this.leadId = leadId; }
-    public String getText() { return text; }
-    public void setText(String text) { this.text = text; }
 }

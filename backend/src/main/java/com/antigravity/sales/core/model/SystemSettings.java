@@ -1,8 +1,10 @@
 package com.antigravity.sales.core.model;
 
+import com.antigravity.sales.security.crypto.AesGcmConverter;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.persistence.Convert;
 import lombok.Data;
 
 @Entity
@@ -15,6 +17,8 @@ public class SystemSettings {
     private String smtpHost;
     private Integer smtpPort;
     private String smtpUsername;
+
+    @Convert(converter = AesGcmConverter.class)
     private String smtpPassword;
     private Boolean smtpAuth = true;
     private Boolean smtpTls = true;
