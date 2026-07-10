@@ -17,6 +17,8 @@ public class SystemNotification {
 
     private UUID tenantId;
 
+    private UUID targetUserId;
+
     private String message;
     private String type;
     private Long leadId;
