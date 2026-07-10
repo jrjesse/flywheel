@@ -146,13 +146,10 @@ export default function Dashboard() {
 
   const fetchSettings = async () => {
     try {
-      const res = await apiFetch("/api/settings/proposals");
-      if (res.ok) {
-        const data = await res.json();
-        setSettings(data);
-        if (data.revenueGoal) setEditingRevenueGoal(data.revenueGoal);
-        if (data.contactGoal) setEditingContactGoal(data.contactGoal);
-      }
+      const data = await apiFetch<any>("/api/settings/proposals");
+      setSettings(data);
+      if (data.revenueGoal) setEditingRevenueGoal(data.revenueGoal);
+      if (data.contactGoal) setEditingContactGoal(data.contactGoal);
     } catch (error) {
       console.error("Error fetching settings:", error);
     }
@@ -160,12 +157,9 @@ export default function Dashboard() {
 
   const fetchLeads = async () => {
     try {
-      const res = await apiFetch("/api/leads");
-      if (res.ok) {
-        const data = await res.json();
-        data.sort((a: Lead, b: Lead) => b.score - a.score);
-        setLeads(data);
-      }
+      const data = await apiFetch<Lead[]>("/api/leads");
+      data.sort((a, b) => b.score - a.score);
+      setLeads(data);
     } catch (error) {
       console.error("Error fetching leads:", error);
     } finally {

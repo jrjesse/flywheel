@@ -23,10 +23,9 @@ export function WhatsAppSettingsModal({ isOpen, onClose }: { isOpen: boolean; on
   useEffect(() => {
     if (isOpen) {
       setIsLoading(true);
-      apiFetch(`/api/settings/whatsapp/${clientId}`)
-        .then(res => res.json())
-        .then(data => {
-          if(data.id) setConfig(data);
+      apiFetch<any>(`/api/settings/whatsapp/${clientId}`)
+        .then((data) => {
+          if (data.id) setConfig(data);
           setIsLoading(false);
         })
         .catch(() => setIsLoading(false));
@@ -57,13 +56,11 @@ export function WhatsAppSettingsModal({ isOpen, onClose }: { isOpen: boolean; on
   const testConnection = async () => {
     setTestStatus('testing');
     try {
-      const res = await apiFetch(`/api/settings/whatsapp/${clientId}/test`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(config)
+      await apiFetch(`/api/settings/whatsapp/${clientId}/test`, {
+        method: "POST",
+        body: JSON.stringify(config),
       });
-      if (res.ok) setTestStatus('success');
-      else setTestStatus('error');
+      setTestStatus("success");
     } catch {
       setTestStatus('error');
     }

@@ -72,11 +72,8 @@ export default function LeadSearchPage() {
             if (minMrr) params.append("minMrr", minMrr);
             
             // Backend returns Page<Lead>, so we access data.content
-            const res = await apiFetch(`/api/leads/search?${params.toString()}`);
-            if (res.ok) {
-                const data = await res.json();
-                setLeads(data.content || []);
-            }
+            const data = await apiFetch<{ content?: any[] }>(`/api/leads/search?${params.toString()}`);
+            setLeads(data.content || []);
         } catch (error) {
             console.error(error);
         } finally {
@@ -91,15 +88,11 @@ export default function LeadSearchPage() {
 
     const moveToFunnel = async (id: number) => {
         try {
-            const res = await apiFetch(`/api/leads/${id}/status`, {
+            await apiFetch(`/api/leads/${id}/status`, {
                 method: "PATCH",
-                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ status: "PENDING" }),
             });
-            if (res.ok) {
-                // Atualiza localmente a interface para refletir a mudança instantaneamente
-                setLeads(prev => prev.map(l => l.id === id ? { ...l, status: "PENDING" } : l));
-            }
+            setLeads(prev => prev.map(l => l.id === id ? { ...l, status: "PENDING" } : l));
         } catch (error) {
             console.error("Erro ao mover lead para o funil:", error);
         }

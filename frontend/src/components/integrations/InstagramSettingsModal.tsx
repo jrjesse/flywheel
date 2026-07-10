@@ -21,10 +21,9 @@ export function InstagramSettingsModal({ isOpen, onClose }: { isOpen: boolean; o
   useEffect(() => {
     if (isOpen) {
       setIsLoading(true);
-      apiFetch(`/api/settings/instagram/${clientId}`)
-        .then(res => res.json())
-        .then(data => {
-          if(data.id) setConfig(data);
+      apiFetch<any>(`/api/settings/instagram/${clientId}`)
+        .then((data) => {
+          if (data.id) setConfig(data);
           setIsLoading(false);
         })
         .catch(() => setIsLoading(false));
@@ -55,13 +54,11 @@ export function InstagramSettingsModal({ isOpen, onClose }: { isOpen: boolean; o
   const testConnection = async () => {
     setTestStatus('testing');
     try {
-      const res = await apiFetch(`/api/settings/instagram/${clientId}/test`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(config)
+      await apiFetch(`/api/settings/instagram/${clientId}/test`, {
+        method: "POST",
+        body: JSON.stringify(config),
       });
-      if (res.ok) setTestStatus('success');
-      else setTestStatus('error');
+      setTestStatus("success");
     } catch {
       setTestStatus('error');
     }

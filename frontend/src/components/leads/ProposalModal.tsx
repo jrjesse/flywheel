@@ -27,21 +27,14 @@ export function ProposalModal({ lead, onClose, onSuccess }: ProposalModalProps) 
     setError("");
 
     try {
-      const res = await apiFetch(`/api/leads/${lead.id}/proposal`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          clientName, 
-          proposalValue: parseFloat(proposalValue.replace(',', '.')) 
-        })
+      await apiFetch(`/api/leads/${lead.id}/proposal`, {
+        method: "POST",
+        body: JSON.stringify({
+          clientName,
+          proposalValue: parseFloat(proposalValue.replace(",", ".")),
+        }),
       });
-
-      if (res.ok) {
-        onSuccess(); // Close modals and refresh parent if needed
-      } else {
-        const errData = await res.json();
-        setError(errData.error || "Erro ao gerar proposta.");
-      }
+      onSuccess();
     } catch (err) {
       console.error(err);
       setError("Erro de comunicação com o servidor.");

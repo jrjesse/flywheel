@@ -33,38 +33,30 @@ export function LeadModal({ lead, onClose }: { lead: any; onClose: () => void })
   const availableTypes = ALL_SOCIAL_TYPES.filter(type => !socialMedias.some(s => s.type === type));
 
   useEffect(() => {
-    // Busca Histórico
-    apiFetch(`/api/leads/${lead.id}/interactions`)
-      .then(res => res.json())
-      .then(data => {
+    apiFetch<any[]>(`/api/leads/${lead.id}/interactions`)
+      .then((data) => {
         setInteractions(data);
         setLoading(false);
       })
-      .catch(err => {
+      .catch((err) => {
         console.error("Erro ao buscar interações:", err);
         setLoading(false);
       });
 
-    // Busca Redes Sociais
-    apiFetch(`/api/leads/${lead.id}/social`)
-      .then(res => res.json())
-      .then(data => setSocialMedias(data))
-      .catch(err => console.error("Erro ao buscar social:", err));
+    apiFetch<any[]>(`/api/leads/${lead.id}/social`)
+      .then((data) => setSocialMedias(data))
+      .catch((err) => console.error("Erro ao buscar social:", err));
   }, [lead.id]);
 
   const handlePost = async () => {
     if (!newDesc.trim()) return;
     try {
-      const res = await apiFetch(`/api/leads/${lead.id}/interactions`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: "Consultor Comercial", description: newDesc })
+      const saved = await apiFetch<any>(`/api/leads/${lead.id}/interactions`, {
+        method: "POST",
+        body: JSON.stringify({ username: "Consultor Comercial", description: newDesc }),
       });
-      if (res.ok) {
-        const saved = await res.json();
-        setInteractions([saved, ...interactions]);
-        setNewDesc("");
-      }
+      setInteractions([saved, ...interactions]);
+      setNewDesc("");
     } catch (err) {
       console.error("Erro ao salvar interação:", err);
     }
@@ -72,25 +64,14 @@ export function LeadModal({ lead, onClose }: { lead: any; onClose: () => void })
 
   const handleChurnAlert = async () => {
     try {
-      const resInteraction = await apiFetch(`/api/leads/${lead.id}/interactions`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username: "Consultor Comercial", description: "⚠️ ALERTA DE CHURN: Cliente reportou insatisfação." })
-      });
-      if (resInteraction.ok) {
-        const saved = await resInteraction.json();
-        setInteractions([saved, ...interactions]);
-      }
-      
-      await apiFetch(`/api/notifications`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const saved = await apiFetch<any>(`/api/leads/${lead.id}/interactions`, {
+        method: "POST",
         body: JSON.stringify({
-          message: `Risco de Churn: Cliente ${lead.name} (${lead.company?.companyName || 'N/A'}) reportou insatisfação.`,
-          type: 'CHURN_RISK',
-          leadId: lead.id
-        })
+          username: "Consultor Comercial",
+          description: "⚠️ ALERTA DE CHURN: Cliente reportou insatisfação.",
+        }),
       });
+      setInteractions([saved, ...interactions]);
     } catch (err) {
       console.error("Erro ao registrar churn:", err);
     }
@@ -100,22 +81,14 @@ export function LeadModal({ lead, onClose }: { lead: any; onClose: () => void })
     if (!socialType || !socialUrl.trim()) return;
     setSocialError("");
     try {
-      const res = await apiFetch(`/api/leads/${lead.id}/social`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ type: socialType, url: socialUrl })
+      const saved = await apiFetch<any>(`/api/leads/${lead.id}/social`, {
+        method: "POST",
+        body: JSON.stringify({ type: socialType, url: socialUrl }),
       });
-      
-      if (res.ok) {
-        const saved = await res.json();
-        setSocialMedias([...socialMedias, saved]);
-        setShowAddSocial(false);
-        setSocialType("");
-        setSocialUrl("");
-      } else if (res.status === 409) {
-        const errData = await res.json();
-        setSocialError(errData.error || "Já existe essa plataforma");
-      }
+      setSocialMedias([...socialMedias, saved]);
+      setShowAddSocial(false);
+      setSocialType("");
+      setSocialUrl("");
     } catch (err) {
       console.error(err);
       setSocialError("Erro de comunicação com o servidor.");
@@ -124,11 +97,9 @@ export function LeadModal({ lead, onClose }: { lead: any; onClose: () => void })
 
   const handleDeleteSocial = async (id: number) => {
     try {
-      const res = await apiFetch(`/api/leads/social/${id}`, { method: 'DELETE' });
-      if (res.ok) {
-        setSocialMedias(socialMedias.filter(s => s.id !== id));
-      }
-    } catch(err) {
+      await apiFetch(`/api/leads/social/${id}`, { method: "DELETE" });
+      setSocialMedias(socialMedias.filter((s) => s.id !== id));
+    } catch (err) {
       console.error("Erro ao deletar social", err);
     }
   };

@@ -31,11 +31,10 @@ export default function ProposalsSettings() {
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    apiFetch(`/api/settings/proposals`)
-      .then(res => res.json())
-      .then(data => {
-        if(data) {
-          setConfig(prev => ({ ...prev, ...data }));
+    apiFetch<Record<string, unknown>>(`/api/settings/proposals`)
+      .then((data) => {
+        if (data) {
+          setConfig((prev) => ({ ...prev, ...data }));
         }
         setIsLoading(false);
       })
@@ -74,22 +73,16 @@ export default function ProposalsSettings() {
 
     setUploadStatus('uploading');
     try {
-      const res = await apiFetch(`/api/settings/proposals/template`, {
-        method: 'POST',
-        body: formData
+      const data = await apiFetch<{ templateFilePath: string }>(`/api/settings/proposals/template`, {
+        method: "POST",
+        body: formData,
       });
-
-      if (res.ok) {
-        const data = await res.json();
-        setConfig(prev => ({ ...prev, templateFilePath: data.templateFilePath }));
-        setUploadStatus('success');
-        setTimeout(() => setUploadStatus('idle'), 3000);
-      } else {
-        setUploadStatus('error');
-      }
+      setConfig((prev) => ({ ...prev, templateFilePath: data.templateFilePath }));
+      setUploadStatus("success");
+      setTimeout(() => setUploadStatus("idle"), 3000);
     } catch (err) {
       console.error(err);
-      setUploadStatus('error');
+      setUploadStatus("error");
     }
   };
 

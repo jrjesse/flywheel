@@ -48,10 +48,7 @@ export function Header() {
     const delayDebounceFn = setTimeout(async () => {
       setIsSearching(true);
       try {
-        const res = await apiFetch("/api/leads");
-        if (res.ok) {
-          const data = await res.json();
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const data = await apiFetch<any[]>("/api/leads");
           const SIMILARITY_THRESHOLD = 0.3;
 
           const scored = data.map((l: any) => {
@@ -75,7 +72,6 @@ export function Header() {
             .sort((a: any, b: any) => b.searchScore - a.searchScore);
 
           setSearchResults(filtered);
-        }
       } catch (error) {
         console.error("Search error", error);
       } finally {
@@ -94,11 +90,8 @@ export function Header() {
 
   const fetchNotifications = async () => {
     try {
-      const res = await apiFetch("/api/notifications/unread");
-      if (res.ok) {
-        const data = await res.json();
-        setNotifications(data);
-      }
+      const data = await apiFetch<SystemNotification[]>("/api/notifications/unread");
+      setNotifications(data);
     } catch (error) {
       console.error("Error fetching notifications", error);
     }
@@ -106,12 +99,8 @@ export function Header() {
 
   const markAsRead = async (id: number) => {
     try {
-      const res = await apiFetch(`/api/notifications/${id}/read`, {
-        method: 'PATCH'
-      });
-      if (res.ok) {
-        setNotifications(notifications.filter(n => n.id !== id));
-      }
+      await apiFetch(`/api/notifications/${id}/read`, { method: "PATCH" });
+      setNotifications(notifications.filter((n) => n.id !== id));
     } catch (error) {
       console.error("Error marking notification as read", error);
     }

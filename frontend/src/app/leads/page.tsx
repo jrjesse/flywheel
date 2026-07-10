@@ -22,11 +22,8 @@ export default function LeadsKanbanPage() {
 
   const fetchLeads = async () => {
     try {
-      const res = await apiFetch("/api/leads");
-      if (res.ok) {
-        const data = await res.json();
-        setLeads(data);
-      }
+      const data = await apiFetch<any[]>("/api/leads");
+      setLeads(data);
     } catch (e) {
       console.error(e);
     }
