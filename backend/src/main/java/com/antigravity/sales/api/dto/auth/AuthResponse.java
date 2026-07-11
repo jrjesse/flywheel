@@ -12,6 +12,7 @@ public class AuthResponse {
     private UUID userId;
     private UUID tenantId;
     private String email;
+    private String displayName;
     private String role;
     private String webhookSecret;
 }
