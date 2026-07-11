@@ -24,7 +24,8 @@ public class SystemNotificationController {
     @PreAuthorize("hasAnyRole('ADMIN','MANAGER','AGENT')")
     public ResponseEntity<List<SystemNotification>> getUnreadNotifications() {
         UUID tenantId = TenantContext.requireTenantId();
-        return ResponseEntity.ok(notificationRepository.findByTenantIdAndIsReadFalseOrderByCreatedAtDesc(tenantId));
+        UUID userId = TenantContext.requireUserId();
+        return ResponseEntity.ok(notificationRepository.findUnreadForUser(tenantId, userId));
     }
 
     @PatchMapping("/{id}/read")
