@@ -12,7 +12,7 @@ Sistema de ingestão e automação de funil comercial com **Spring Boot 4**, **P
 | Billing | Stripe |
 | Infra local | Docker Compose (Postgres + Kafka) |
 
-> O frontend (Next.js 15 + React 18) está planejado mas ainda não está neste repositório.
+> O frontend (Next.js 16 + React 19) está em `frontend/` — integrado ao monorepo com auth JWT e UI por perfil.
 
 ## Features
 
@@ -86,6 +86,29 @@ curl -X POST http://localhost:8080/api/auth/login \
 ```bash
 curl http://localhost:8080/api/leads \
   -H "Authorization: Bearer SEU_JWT_AQUI"
+```
+
+### 7. Frontend (opcional)
+
+```bash
+cd frontend
+cp .env.example .env.local
+npm install
+npm run dev
+```
+
+UI em `http://localhost:3000` — login, kanban, pool de leads, equipe (admin), fila WhatsApp.
+
+### 8. Smoke test (API)
+
+```bash
+./scripts/smoke-test.sh http://localhost:8080
+```
+
+### 9. Stack staging (Docker)
+
+```bash
+docker compose -f docker-compose.staging.yml up --build -d
 ```
 
 ---
